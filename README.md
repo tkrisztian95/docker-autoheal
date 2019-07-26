@@ -1,6 +1,6 @@
 # docker-autoheal-with-sendmail
 
-Monitor and restart unhealthy docker containers. When restart required then send email to your inbox.
+Monitor and restart unhealthy docker containers. When restart required then send email to your inbox too.
 
 ## How to use
 ```bash
