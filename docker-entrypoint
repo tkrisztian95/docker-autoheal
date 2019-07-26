@@ -6,6 +6,23 @@ set -o pipefail
 DOCKER_SOCK=${DOCKER_SOCK:-/var/run/docker.sock}
 CURL_TIMEOUT=${CURL_TIMEOUT:-30}
 
+
+MAIL_ENABLED=${MAIL_ENABLED:-false}
+MAILHUB=${MAILHUB}
+ROOT=${ROOT}
+SUBJECT=${SUBJECT:-[AUTOHEAL]}
+TO=${TO}
+CC=${CC}
+REWRITE_DOMAIN=${REWRITE_DOMAIN}
+FROMLINEOVERRIDE=${FROMLINEOVERRIDE:-yes}
+HOSTNAME=${HOSTNAME}
+TLS_CA_FILE=${TLS_CA_FILE:-/etc/pki/tls/certs/ca-bundle.crt}
+USETLS=${USETLS:-yes}
+USESTARTTLS=${USESTARTTLS:-yes}
+AUTHUSER=${AUTHUSER}
+AUTHPASS=${AUTHPASS}
+
+
 # SIGTERM-handler
 term_handler() {
   exit 143; # 128 + 15 -- SIGTERM
@@ -16,12 +33,68 @@ docker_curl() {
   return 0
 }
 
+send_mail () {
+  if [ "${MAIL_ENABLED}" = 'true' ]; then
+   sendmail -vit << MAIL_END
+Subject: $SUBJECT
+To: $TO     
+CC: $CC
+
+Hostname: $HOSTNAME
+$1
+
+MAIL_END
+fi
+}
+
 trap 'kill ${!}; term_handler' SIGTERM
 
 if [ "$1" = 'healthcheck' ]; then
   docker_curl --fail http://localhost/_ping
   exit $?
 fi
+
+if [ "${MAIL_ENABLED}" = 'true' ]; then
+
+  cat > /etc/ssmtp/ssmtp.conf << EOF
+# The user that gets all the mails (UID < 1000, usually the admin)
+# The person who gets all mail for userids < 1000
+# Make this empty to disable rewriting.
+root=${ROOT}
+
+# The mail server (where the mail is sent to),
+# For google both port 465 or 587 should be acceptable
+# See also https://support.google.com/mail/answer/78799
+mailhub=${MAILHUB}
+
+# The address where the mail appears to come from for user authentication.
+rewriteDomain=${REWRITE_DOMAIN}
+
+# The full hostname.  Must be correctly formed, fully qualified domain name or GMail will reject connection.
+hostname=${HOSTNAME}
+
+# Use SSL/TLS before starting negotiation
+TLS_CA_FILE=${TLS_CA_FILE}
+UseTLS=${USETLS}
+UseSTARTTLS=${USESTARTTLS}
+
+# Username/Password
+AuthUser=${AUTHUSER}
+AuthPass=${AUTHPASS}
+AuthMethod=LOGIN
+
+# Email 'From header's can override the default domain?
+# Are users allowed to set their own From: address?
+# YES - Allow the user to specify their own From: address
+# NO - Use the system generated From: address
+FromLineOverride=${FROMLINEOVERRIDE}
+EOF
+
+send_mail "Autoheal is running and checking your containers health!"
+
+fi
+
+
 
 if [ "$1" = 'autoheal' ] && [ -e ${DOCKER_SOCK} ]; then
   
@@ -49,9 +122,13 @@ if [ "$1" = 'autoheal' ] && [ -e ${DOCKER_SOCK} ]; then
         CONTAINER_SHORT_ID=${CONTAINER_ID:0:12}
         DATE=$(date +%d-%m-%Y" "%H:%M:%S)
         if [ "null" = "$CONTAINER_NAME" ]; then
-          echo "$DATE Container name of ($CONTAINER_SHORT_ID) is null, which implies container does not exist - don't restart"
+          MSG="$DATE Container name of ($CONTAINER_SHORT_ID) is null, which implies container does not exist - don't restart"
+          echo "$MSG"
+          send_mail "$MSG"
         else
-          echo "$DATE Container ${CONTAINER_NAME} ($CONTAINER_SHORT_ID) found to be unhealthy - Restarting container now with ${TIMEOUT}s timeout"
+          MSG="$DATE Container ${CONTAINER_NAME} ($CONTAINER_SHORT_ID) found to be unhealthy - Restarting container now with ${TIMEOUT}s timeout"
+          echo "$MSG"
+          send_mail "$MSG"
           docker_curl -f -XPOST "http://localhost/containers/${CONTAINER_ID}/restart?t=${TIMEOUT}" \
             || echo "$DATE Restarting container $CONTAINER_SHORT_ID failed"
         fi
