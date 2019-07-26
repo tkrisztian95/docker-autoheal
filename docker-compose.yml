@@ -1,0 +1,26 @@
+version: '2'
+
+services: 
+  autoheal-with-sendmail:
+    build: .
+    name: autoheal-with-sendmail
+    environment: 
+    #ssmtp config
+     - MAIL_ENABLED=true
+     - MAILHUB=smtp.gmail.com:587
+     - ROOT=youremail@gmail.com
+     - SUBJECT=[AUTOHEAL]
+     - TO=youremail@gmail.com
+     - CC=
+     - REWRITE_DOMAIN=gmail.com
+     - FROMLINEOVERRIDE=yes 
+     - HOSTNAME=localhost  
+     - TLS_CA_FILE=
+     - USETLS=yes
+     - USESTARTTLS=yes
+     - AUTHUSER=youremail@gmail.com
+     - AUTHPASS=yourAppPassword
+    #Autoheal settings
+     - AUTOHEAL_CONTAINER_LABEL=all
+    volumes: 
+     - /var/run/docker.sock:/var/run/docker.sock

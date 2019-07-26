@@ -1,26 +1,27 @@
-# docker-autoheal
+# docker-autoheal-with-sendmail
 
-Monitor and restart unhealthy docker containers. 
-This functionality was proposed to be included with the addition of `HEALTHCHECK`, however didn't make the cut.
-This container is a stand-in till there is native support for `--exit-on-unhealthy` https://github.com/docker/docker/pull/22719.
-
-## Supported tags and Dockerfile links
-- [`latest` (*Dockerfile*)](https://github.com/willfarrell/docker-autoheal/blob/master/Dockerfile)
-
-[![](https://images.microbadger.com/badges/version/willfarrell/autoheal.svg)](http://microbadger.com/images/willfarrell/autoheal "Get your own version badge on microbadger.com")  [![](https://images.microbadger.com/badges/image/willfarrell/autoheal.svg)](http://microbadger.com/images/willfarrell/autoheal "Get your own image badge on microbadger.com")
+Monitor and restart unhealthy docker containers. When restart required then send email to your inbox.
 
 ## How to use
 ```bash
 docker run -d \
     --name autoheal \
     --restart=always \
+    -e MAIL_ENABLED=true \
+    -e MAILHUB=smtp.gmail.com:587 \
+    -e ROOT=youremail@gmail.com \
+    -e TO=recepient@gmail.com \
+    -e AUTHUSER=username@gmail.com \
+    -e AUTHPASS=yourAppPass \
+    -e REWRITE_DOMAIN=gmail.com \
+    -e HOSTNAME=localhost \
     -e AUTOHEAL_CONTAINER_LABEL=all \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    willfarrell/autoheal
+    tkrisztian95/autoheal-with-sendmail
 ```
 a) Apply the label `autoheal=true` to your container to have it watched.
 
-b) Set ENV `AUTOHEAL_CONTAINER_LABEL=all` to watch all running containers. 
+b) Set ENV `AUTOHEAL_CONTAINER_LABEL=all` to watch all running containers.
 
 c) Set ENV `AUTOHEAL_CONTAINER_LABEL` to existing label name that has the value `true`.
 
@@ -34,6 +35,12 @@ AUTOHEAL_START_PERIOD=0   # wait 0 seconds before first health check
 AUTOHEAL_DEFAULT_STOP_TIMEOUT=10   # Docker waits max 10 seconds (the Docker default) for a container to stop before killing during restarts (container overridable via label, see below)
 DOCKER_SOCK=/var/run/docker.sock   # Unix socket for curl requests to Docker API
 CURL_TIMEOUT=30     # --max-time seconds for curl requests to Docker API
+MAIL_ENABLED=false
+SUBJECT=[AUTOHEAL]
+FROMLINEOVERRIDE=yes
+TLS_CA_FILE=/etc/pki/tls/certs/ca-bundle.crt
+USETLS=yes
+USESTARTTLS=yes
 ```
 
 ### Optional Container Labels
@@ -43,10 +50,23 @@ autoheal.stop.timeout=20        # Per containers override for stop timeout secon
 
 ## Testing
 ```bash
-docker build -t autoheal .
+
+docker build -t alpine-with-healthcheck ./alpine-with-healthcheck
+
+docker run -exec -it alpine-with-healthcheck
+
+docker build -t autoheal-with-sendmail .
 
 docker run -d \
+    -e MAIL_ENABLED=true \
+    -e MAILHUB=smtp.gmail.com:587 \
+    -e ROOT=youremail@gmail.com \
+    -e TO=recepient@gmail.com \
+    -e AUTHUSER=username@gmail.com \
+    -e AUTHPASS=yourAppPass \
+    -e REWRITE_DOMAIN=gmail.com \
+    -e HOSTNAME=localhost \
     -e AUTOHEAL_CONTAINER_LABEL=all \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    autoheal                                                                        
+    autoheal-with-sendmail
 ```
