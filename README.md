@@ -53,6 +53,10 @@ k) Set ENV `REWRITE_DOMAIN`
 
 Note: See https://wiki.archlinux.org/index.php/SSMTP for ssmtp configuration details.
 
+### Email Screenshots
+This screenshot is taken in my Gmail inbox
+![Screenshot](resources/Capture.PNG)
+
 ## ENV Defaults
 ```
 AUTOHEAL_CONTAINER_LABEL=autoheal
