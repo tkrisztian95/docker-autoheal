@@ -49,7 +49,9 @@ k) Set ENV `AUTHOPASS`
 
 Note: In case you use gmail set app password instead of your personal password. See https://support.google.com/mail/answer/185833
 
-k) Set ENV `REWRITE_DOMAIN`
+l) Set ENV `REWRITE_DOMAIN`
+
+m) Set ENV `HOSTNAME` (E.g.: localhost or any valid hostname to help identify where the email came from)
 
 Note: See https://wiki.archlinux.org/index.php/SSMTP for ssmtp configuration details.
 
