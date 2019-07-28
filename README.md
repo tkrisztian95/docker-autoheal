@@ -19,6 +19,8 @@ docker run -d \
     -v /var/run/docker.sock:/var/run/docker.sock \
     tkrisztian95/autoheal-with-sendmail
 ```
+
+### Autoheal
 a) Apply the label `autoheal=true` to your container to have it watched.
 
 b) Set ENV `AUTOHEAL_CONTAINER_LABEL=all` to watch all running containers.
@@ -26,6 +28,30 @@ b) Set ENV `AUTOHEAL_CONTAINER_LABEL=all` to watch all running containers.
 c) Set ENV `AUTOHEAL_CONTAINER_LABEL` to existing label name that has the value `true`.
 
 Note: You must apply `HEALTHCHECK` to your docker images first. See https://docs.docker.com/engine/reference/builder/#healthcheck for details.
+
+### Sendmail extra
+
+d) Set ENV `MAIL_ENABLED` to the value `true`
+
+e) Set ENV `MAILHUB` to your smtp server (E.g.: smtp.gmail.com:587)
+
+f) Set ENV `ROOT`
+
+g) Set ENV `TO`
+
+h) Set ENV `CC`
+
+i) Set ENV `SUBJECT`
+
+j) Set ENV `AUTHUSER`
+
+k) Set ENV `AUTHOPASS`
+
+Note: In case you use gmail set app password instead of your personal password. See https://support.google.com/mail/answer/185833
+
+k) Set ENV `REWRITE_DOMAIN`
+
+Note: See https://wiki.archlinux.org/index.php/SSMTP for ssmtp configuration details.
 
 ## ENV Defaults
 ```
