@@ -17,7 +17,7 @@ docker run -d \
     -e HOSTNAME=localhost \
     -e AUTOHEAL_CONTAINER_LABEL=all \
     -v /var/run/docker.sock:/var/run/docker.sock \
-    tkrisztian95/autoheal-with-sendmail
+    tkrisztiangyula/autoheal-with-sendmail
 ```
 
 ### Autoheal
